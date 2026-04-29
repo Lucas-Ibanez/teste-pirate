@@ -80,7 +80,7 @@ class AllSprites(pygame.sprite.Group):
 		self.display_surface.fill('#ddc6a1')
 		horizon_pos = self.horizon_line + self.offset.y
 
-		sea_rect = pygame.FRect(0,horizon_pos,WINDOW_WIDTH,WINDOW_HEIGHT - horizon_pos)
+		sea_rect = pygame.Rect(0,horizon_pos,WINDOW_WIDTH,WINDOW_HEIGHT - horizon_pos)
 		pygame.draw.rect(self.display_surface, '#92a9ce', sea_rect)
 
 		# horizon line

@@ -7,7 +7,7 @@ class Tooth(pygame.sprite.Sprite):
 		super().__init__(groups)
 		self.frames, self.frame_index = frames, 0
 		self.image = self.frames[self.frame_index]
-		self.rect = self.image.get_frect(topleft = pos)
+		self.rect = self.image.get_rect(topleft = pos)
 		self.z = Z_LAYERS['main']
 
 		self.direction = choice((-1,1))
@@ -33,9 +33,9 @@ class Tooth(pygame.sprite.Sprite):
 		self.rect.x += self.direction * self.speed * dt
 
 		# reverse direction 
-		floor_rect_right = pygame.FRect(self.rect.bottomright, (1,1))
-		floor_rect_left = pygame.FRect(self.rect.bottomleft, (-1,1))
-		wall_rect = pygame.FRect(self.rect.topleft + vector(-1,0), (self.rect.width + 2, 1))
+		floor_rect_right = pygame.Rect(self.rect.bottomright, (1,1))
+		floor_rect_left = pygame.Rect(self.rect.bottomleft, (-1,1))
+		wall_rect = pygame.Rect(self.rect.topleft + vector(-1,0), (self.rect.width + 2, 1))
 
 		if floor_rect_right.collidelist(self.collision_rects) < 0 and self.direction > 0 or\
 		   floor_rect_left.collidelist(self.collision_rects) < 0 and self.direction < 0 or \
@@ -58,7 +58,7 @@ class Shell(pygame.sprite.Sprite):
 		self.frame_index = 0
 		self.state = 'idle'
 		self.image = self.frames[self.state][self.frame_index]
-		self.rect = self.image.get_frect(topleft = pos)
+		self.rect = self.image.get_rect(topleft = pos)
 		self.old_rect = self.rect.copy()
 		self.z = Z_LAYERS['main']
 		self.player = player
@@ -102,7 +102,7 @@ class Pearl(pygame.sprite.Sprite):
 		self.pearl = True
 		super().__init__(groups)
 		self.image = surf
-		self.rect = self.image.get_frect(center = pos + vector(50 * direction,0))
+		self.rect = self.image.get_rect(center = pos + vector(50 * direction,0))
 		self.direction = direction
 		self.speed = speed
 		self.z = Z_LAYERS['main']

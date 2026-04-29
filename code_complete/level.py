@@ -36,6 +36,7 @@ class Level:
 		self.tooth_sprites = pygame.sprite.Group()
 		self.pearl_sprites = pygame.sprite.Group()
 		self.item_sprites = pygame.sprite.Group()
+		self.water_rects = []
 
 		self.setup(tmx_map, level_frames, audio_files)
 
@@ -66,6 +67,8 @@ class Level:
 
 		# bg details
 		for obj in tmx_map.get_layer_by_name('BG details'):
+			if not obj.name:
+				continue
 			if obj.name == 'static':
 				Sprite((obj.x, obj.y), obj.image, self.all_sprites, z = Z_LAYERS['bg tiles'])
 			else:
@@ -106,7 +109,7 @@ class Level:
 					animation_speed = ANIMATION_SPEED if not 'palm' in obj.name else ANIMATION_SPEED + uniform(-1,1)
 					AnimatedSprite((obj.x, obj.y), frames, groups, z, animation_speed)
 			if obj.name == 'flag':
-				self.level_finish_rect = pygame.FRect((obj.x, obj.y), (obj.width, obj.height))
+				self.level_finish_rect = pygame.Rect((obj.x, obj.y), (obj.width, obj.height))
 
 		# moving objects 
 		for obj in tmx_map.get_layer_by_name('Moving Objects'):
@@ -158,6 +161,8 @@ class Level:
 
 		# enemies 
 		for obj in tmx_map.get_layer_by_name('Enemies'):
+			if not obj.name:
+				continue
 			if obj.name == 'tooth':
 				Tooth((obj.x, obj.y), level_frames['tooth'], (self.all_sprites, self.damage_sprites, self.tooth_sprites), self.collision_sprites)
 			if obj.name == 'shell':
@@ -175,6 +180,9 @@ class Level:
 
 		# water 
 		for obj in tmx_map.get_layer_by_name('Water'):
+			if not obj.width or not obj.height:
+				continue
+			self.water_rects.append(pygame.Rect(obj.x, obj.y, obj.width, obj.height))
 			rows = int(obj.height / TILE_SIZE) 
 			cols = int(obj.width / TILE_SIZE) 
 			for row in range(rows):
@@ -221,19 +229,41 @@ class Level:
 				target.reverse()
 
 	def check_constraint(self):
+		constrained = False
+
 		# left right
 		if self.player.hitbox_rect.left <= 0:
 			self.player.hitbox_rect.left = 0
+			constrained = True
 		if self.player.hitbox_rect.right >= self.level_width:
 			self.player.hitbox_rect.right = self.level_width
+			constrained = True
+
+		# top border
+		if self.player.hitbox_rect.top <= 0:
+			self.player.hitbox_rect.top = 0
+			self.player.direction.y = max(0, self.player.direction.y)
+			constrained = True
+
+		if constrained:
+			self.player.rect.center = self.player.hitbox_rect.center
 
 		# bottom border 
 		if self.player.hitbox_rect.bottom > self.level_bottom:
-			self.switch_stage('overworld', -1)
+			self.switch_stage('game_over')
+			return True
+
+		# water
+		if self.player.hitbox_rect.collidelist(self.water_rects) >= 0:
+			self.switch_stage('game_over')
+			return True
 
 		# success 
 		if self.player.hitbox_rect.colliderect(self.level_finish_rect):
-			self.switch_stage('overworld', self.level_unlock)
+			self.switch_stage('level_complete')
+			return True
+
+		return False
 
 	def run(self, dt):
 		self.display_surface.fill('black')
@@ -243,6 +273,7 @@ class Level:
 		self.hit_collision()
 		self.item_collision()
 		self.attack_collision()
-		self.check_constraint()
+		if self.check_constraint():
+			return
 		
 		self.all_sprites.draw(self.player.hitbox_rect.center, dt)

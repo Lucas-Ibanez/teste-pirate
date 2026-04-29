@@ -30,10 +30,10 @@ class UI:
 	def display_text(self):
 		if self.coin_timer.active:
 			text_surf = self.font.render(str(self.coin_amount), False, '#33323d')
-			text_rect = text_surf.get_frect(topleft = (16,34))
+			text_rect = text_surf.get_rect(topleft = (16,34))
 			self.display_surface.blit(text_surf, text_rect)
 
-			coin_rect = self.coin_surf.get_frect(center = text_rect.bottomleft).move(0,-6)
+			coin_rect = self.coin_surf.get_rect(center = text_rect.bottomleft).move(0,-6)
 			self.display_surface.blit(self.coin_surf, coin_rect)
 
 	def show_coins(self, amount):

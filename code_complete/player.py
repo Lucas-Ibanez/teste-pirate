@@ -16,7 +16,7 @@ class Player(pygame.sprite.Sprite):
 		self.image = self.frames[self.state][self.frame_index]
 		
 		# rects
-		self.rect = self.image.get_frect(topleft = pos)
+		self.rect = self.image.get_rect(topleft = pos)
 		self.hitbox_rect = self.rect.inflate(-76, -36)
 		self.old_rect = self.hitbox_rect.copy()
 
@@ -111,7 +111,7 @@ class Player(pygame.sprite.Sprite):
 
 	def platform_move(self, dt):
 		if self.platform:
-			self.hitbox_rect.topleft += self.platform.direction * self.platform.speed * dt
+			self.hitbox_rect.topleft += self.platform.delta
 
 	def check_contact(self):
 		floor_rect = pygame.Rect(self.hitbox_rect.bottomleft,(self.hitbox_rect.width,2))

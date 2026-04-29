@@ -6,7 +6,7 @@ class Sprite(pygame.sprite.Sprite):
 	def __init__(self, pos, surf = pygame.Surface((TILE_SIZE,TILE_SIZE)), groups = None, z = Z_LAYERS['main']):
 		super().__init__(groups)
 		self.image = surf
-		self.rect = self.image.get_frect(topleft = pos)
+		self.rect = self.image.get_rect(topleft = pos)
 		self.old_rect = self.rect.copy()
 		self.z = z
 
@@ -63,40 +63,44 @@ class MovingSprite(AnimatedSprite):
 		else:
 			self.rect.midtop = start_pos
 
-		self.start_pos = start_pos
-		self.end_pos = end_pos
+		self.pos = vector(self.rect.topleft)
+		self.start_pos = vector(start_pos)
+		self.end_pos = vector(end_pos)
 
 		# movement
 		self.moving = True
 		self.speed = speed
 		self.direction = vector(1,0) if move_dir == 'x' else vector(0,1)
 		self.move_dir = move_dir
+		self.delta = vector()
 
 		self.flip = flip
 		self.reverse = {'x': False, 'y': False}
 
 	def check_border(self):
 		if self.move_dir == 'x':
-			if self.rect.right >= self.end_pos[0] and self.direction.x == 1:
+			if self.pos.x + self.rect.width >= self.end_pos.x and self.direction.x == 1:
 				self.direction.x = -1
-				self.rect.right = self.end_pos[0]
-			if self.rect.left <= self.start_pos[0] and self.direction.x == -1:
+				self.pos.x = self.end_pos.x - self.rect.width
+			if self.pos.x <= self.start_pos.x and self.direction.x == -1:
 				self.direction.x = 1
-				self.rect.left = self.start_pos[0]
+				self.pos.x = self.start_pos.x
 			self.reverse['x'] = True if self.direction.x < 0 else False
 		else:
-			if self.rect.bottom >= self.end_pos[1] and self.direction.y == 1:
+			if self.pos.y + self.rect.height >= self.end_pos.y and self.direction.y == 1:
 				self.direction.y = -1
-				self.rect.bottom = self.end_pos[1]
-			if self.rect.top <= self.start_pos[1] and self.direction.y == -1:
+				self.pos.y = self.end_pos.y - self.rect.height
+			if self.pos.y <= self.start_pos.y and self.direction.y == -1:
 				self.direction.y = 1
-				self.rect.top = self.start_pos[1]
+				self.pos.y = self.start_pos.y
 			self.reverse['y'] = True if self.direction.y > 0 else False
 
 	def update(self, dt):
 		self.old_rect = self.rect.copy()
-		self.rect.topleft += self.direction * self.speed * dt
+		self.pos += self.direction * self.speed * dt
 		self.check_border()
+		self.rect.topleft = (round(self.pos.x), round(self.pos.y))
+		self.delta = vector(self.rect.topleft) - vector(self.old_rect.topleft)
 
 		self.animate(dt)
 		if self.flip:
@@ -150,7 +154,7 @@ class Node(pygame.sprite.Sprite):
 	def __init__(self, pos, surf, groups, level, data, paths):
 		super().__init__(groups)
 		self.image = surf
-		self.rect = self.image.get_frect(center = (pos[0] + TILE_SIZE / 2, pos[1] + TILE_SIZE / 2))
+		self.rect = self.image.get_rect(center = (pos[0] + TILE_SIZE / 2, pos[1] + TILE_SIZE / 2))
 		self.z = Z_LAYERS['path']
 		self.level = level
 		self.data = data
@@ -176,7 +180,7 @@ class Icon(pygame.sprite.Sprite):
 		self.z = Z_LAYERS['main']
 
 		# rect
-		self.rect = self.image.get_frect(center = pos)
+		self.rect = self.image.get_rect(center = pos)
 
 	def start_move(self, path):
 		self.rect.center = path[0]
@@ -194,16 +198,16 @@ class Icon(pygame.sprite.Sprite):
 
 	def point_collision(self):
 		if self.direction.y == 1 and self.rect.centery >= self.path[0][1] or \
-		   self.direction.y == -1 and self.rect.centery <= self.path[0][1]:
+		   	self.direction.y == -1 and self.rect.centery <= self.path[0][1]:
 			self.rect.centery = self.path[0][1]
 			del self.path[0]
 			self.find_path()
 
 		if self.direction.x == 1 and self.rect.centerx >= self.path[0][0] or \
-		   self.direction.x == -1 and self.rect.centerx <= self.path[0][0]:
-		   self.rect.centerx = self.path[0][0]
-		   del self.path[0]
-		   self.find_path()
+			self.direction.x == -1 and self.rect.centerx <= self.path[0][0]:
+			self.rect.centerx = self.path[0][0]
+			del self.path[0]
+			self.find_path()
 
 	def animate(self, dt):
 		self.frame_index += ANIMATION_SPEED * dt

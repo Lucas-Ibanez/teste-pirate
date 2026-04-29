@@ -1,9 +1,11 @@
 from settings import * 
 from os import walk
-from os.path import join
+from os.path import join, dirname, abspath
+
+PROJECT_DIR = dirname(dirname(abspath(__file__)))
 
 def import_image(*path, alpha = True, format = 'png'):
-	full_path = join(*path) + f'.{format}'
+	full_path = join(PROJECT_DIR, *path) + f'.{format}'
 	return pygame.image.load(full_path).convert_alpha() if alpha else pygame.image.load(full_path).convert()
 
 def import_folder(*path):
