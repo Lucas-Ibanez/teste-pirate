@@ -239,12 +239,6 @@ class Level:
 			self.player.hitbox_rect.right = self.level_width
 			constrained = True
 
-		# top border
-		if self.player.hitbox_rect.top <= 0:
-			self.player.hitbox_rect.top = 0
-			self.player.direction.y = max(0, self.player.direction.y)
-			constrained = True
-
 		if constrained:
 			self.player.rect.center = self.player.hitbox_rect.center
 
